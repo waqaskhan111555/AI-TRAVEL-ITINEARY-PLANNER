@@ -26,9 +26,18 @@ spec:
       labels:
         app: elasticsearch
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ['sh', '-c', 'chown -R 1000:1000 /usr/share/elasticsearch/data']
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: elasticsearch-storage
+              mountPath: /usr/share/elasticsearch/data
       containers:
         - name: elasticsearch
-          image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
           env:
             - name: discovery.type
               value: single-node
@@ -36,6 +45,8 @@ spec:
               value: "-Xms512m -Xmx512m"
             - name: xpack.security.enabled
               value: "false"
+            - name: ELASTIC_PASSWORD
+              value: "elastic"
           ports:
             - containerPort: 9200
           resources:
